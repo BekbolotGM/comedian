@@ -126,17 +126,28 @@ func TestStanduper(t *testing.T) {
 }
 
 func TestNotificationThread(t *testing.T) {
-	var tests = []struct {
-		n   NotificationThread
-		exp error
+	testCases := []struct {
+		chatID           int64
+		username         string
+		notificationTime time.Time
+		reminderCounter  int
+		errorMessage     string
 	}{
-		{NotificationThread{ChatID: int64(0), Username: "User1", NotificationTime: time.Now(), ReminderCounter: 0}, errors.New("Field ChatID is empty")},
-		{NotificationThread{ChatID: int64(1), Username: "", NotificationTime: time.Now(), ReminderCounter: 0}, errors.New("Field Username is empty")},
-		{NotificationThread{ChatID: int64(1), Username: "User1", NotificationTime: time.Now(), ReminderCounter: -1}, errors.New("Field ReminderCounter is empty")},
-		{NotificationThread{ChatID: int64(1), Username: "User1", NotificationTime: time.Now(), ReminderCounter: 1}, nil},
+		{int64(0), "User1", time.Now(), 0, "Field ChatID is empty"},
+		{int64(1), "", time.Now(), 0, "Field Username is empty"},
+		{int64(1), "User1", time.Now(), -1, "Field ReminderCounter is empty"},
+		{int64(1), "User1", time.Now(), 1, ""},
 	}
-	for _, e := range tests {
-		res := Validate(e.n)
-		assert.Equal(t, res, e.exp)
+	for _, e := range testCases {
+		nt := NotificationThread{
+			ChatID:           e.chatID,
+			Username:         e.username,
+			NotificationTime: e.notificationTime,
+			ReminderCounter:  e.reminderCounter,
+		}
+		err := nt.Validate()
+		if err != nil {
+			assert.Equal(t, errors.New(e.errorMessage), err)
+		}
 	}
 }
